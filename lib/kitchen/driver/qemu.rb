@@ -37,6 +37,7 @@ module Kitchen
       default_config :username,  'kitchen'
       default_config :password,  'kitchen'
       default_config :port,      2222
+      default_config :display,   'none'
       default_config :memory,    '512'
       default_config :nic_model, 'virtio'
 
@@ -59,9 +60,7 @@ module Kitchen
           config[:binary] = @@archbinary[config[:arch]] or
             raise UserError, "Unknown architecture '#{config[:arch]}'"
         end
-        if not config[:vnc] and not config[:spice]
-          config[:spice] = "addr=#{spice_path},unix"
-        end
+        config[:vga] = 'qxl' if config[:spice] && !config[:vga]
         self
       end
 
@@ -95,6 +94,7 @@ module Kitchen
 
         cmd = [
           config[:binary], '-daemonize',
+          '-display', config[:display].to_s,
           '-chardev', "socket,id=monitor,path=#{monitor},server,nowait",
           '-mon', 'chardev=monitor,mode=control,default',
           '-m', config[:memory].to_s,
@@ -125,15 +125,13 @@ module Kitchen
           info 'KVM disabled'
         end
 
-        if config[:spice]
-          cmd.push('-vga', 'qxl', '-spice', config[:spice])
-        elsif config[:vnc]
-          cmd.push('-vnc', config[:vnc])
-        end
+        cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
+        cmd.push('-spice', config[:spice].to_s) if config[:spice]
+        cmd.push('-vnc',   config[:vnc].to_s)   if config[:vnc]
 
         info 'Spawning QEMU..'
         error = nil
-        Open3.popen3({ 'QEMU_AUDIO_DRV' => 'none' }, *cmd, :unsetenv_others=>true ) do |_, _, err, thr|
+        Open3.popen3({ 'QEMU_AUDIO_DRV' => 'none' }, *cmd) do |_, _, err, thr|
           if not thr.value.success?
             error = err.read.strip
           end
@@ -235,10 +233,6 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
         File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.mon")
       end
 
-      def spice_path
-        File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.spice")
-      end
-
       def create_privkey
         path = privkey_path
         return true if File.file?(path)
@@ -246,12 +240,10 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
       end
 
       def cleanup!
-        [ spice_path, monitor_path ].each do |path|
-          begin
-            File.delete(path)
-          rescue Errno::ENOENT
-            # do nothing
-          end
+        begin
+          File.delete(monitor_path)
+        rescue Errno::ENOENT
+          # do nothing
         end
       end
 

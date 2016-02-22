@@ -115,6 +115,14 @@ Defaults to unset which means kitchen-qemu will check
 if `/dev/kvm` is both readable and writable before
 enabling KVM.
 
+### <a name="config-display"></a> display
+
+Sets the -display option for QEMU. Set to `sdl` or `gtk`
+to get a virtual screen window. This may be helpful to
+debug why your image doesn't respond to SSH.
+
+Defaults to `none' which means no window is displayed.
+
 ### <a name="config-memory"></a> memory
 
 Determines the number of megabytes of RAM to give the instance.
