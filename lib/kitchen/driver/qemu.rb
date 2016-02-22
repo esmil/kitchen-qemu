@@ -213,9 +213,9 @@ jxl4Yo9wNmkVrWMkOUn1BRWTEVLnx88EaIOu3CJyJDsaSufbyENCtCXhjVEV4Eqp
 kc9GOsm4n+EVnWyhUVjwxEExaCRuFa4aJ/ekLZYtepNnd9Nsoknqd1SVW163QjrY
 tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
 -----END RSA PRIVATE KEY-----
-}
+}.freeze
 
-      @@pubkey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIboBIvdtZLruuwDksO8qd90IFqArrUHksiv4292MrehEqEKqpGzto1I86oy7Y1sqi3j8G0PSFaKkXsICwyor7bjVygxTDFFOWq+h78vvFnbgq1qOubWST/E1QY/m9bIryxh9icNS4tLKlFpn9l9a4pmBAsN07DYVaocVUugkOxeCxr/KLUXdvmXj4Xfq837ultL1ggyaN2YqeDwn+GxM8RNm51rIRa4DL6Y1rPgztm3FL+A9MglzEjELbs8s6EDVewAG6do1HwS3LqCGxlfZgRieelzIHkyaqLRU4mzqbkhmfaR/U/fHQppRDYWb3CoCSBilJxxYfjLK1VDyXOWkH kitchen-qemu'
+      @@pubkey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIboBIvdtZLruuwDksO8qd90IFqArrUHksiv4292MrehEqEKqpGzto1I86oy7Y1sqi3j8G0PSFaKkXsICwyor7bjVygxTDFFOWq+h78vvFnbgq1qOubWST/E1QY/m9bIryxh9icNS4tLKlFpn9l9a4pmBAsN07DYVaocVUugkOxeCxr/KLUXdvmXj4Xfq837ultL1ggyaN2YqeDwn+GxM8RNm51rIRa4DL6Y1rPgztm3FL+A9MglzEjELbs8s6EDVewAG6do1HwS3LqCGxlfZgRieelzIHkyaqLRU4mzqbkhmfaR/U/fHQppRDYWb3CoCSBilJxxYfjLK1VDyXOWkH kitchen-qemu'.freeze
 
       @@archbinary = {
         'i386'   => 'qemu-system-i386',
@@ -224,7 +224,7 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
         'x86_64' => 'qemu-system-x86_64',
         '32bit'  => 'qemu-system-i386',
         '64bit'  => 'qemu-system-x86_64',
-      }
+      }.freeze
 
       def privkey_path
         File.join(config[:kitchen_root], '.kitchen', 'kitchen-qemu.key')
