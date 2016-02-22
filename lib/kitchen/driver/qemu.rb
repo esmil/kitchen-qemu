@@ -75,8 +75,7 @@ module Kitchen
           begin
             mon = UNIXSocket.new(monitor)
           rescue Errno::ECONNREFUSED
-            File.delete(spice_path)
-            File.delete(monitor)
+            cleanup!
           else
             mon.close
             raise ActionFailed, "QEMU instance #{instance.to_str} already running."
@@ -138,7 +137,10 @@ module Kitchen
             error = err.read.strip
           end
         end
-        raise ActionFailed, error if error
+        if error
+          cleanup!
+          raise ActionFailed, error
+        end
 
         if hostname == fqdn
           names = fqdn
@@ -179,8 +181,7 @@ module Kitchen
           raise ActionFailed, "QEMU instance #{instance.to_str} is unresponsive"
         end
 
-        File.delete(spice_path)
-        File.delete(monitor)
+        cleanup!
       end
 
       private
@@ -241,6 +242,16 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
         path = privkey_path
         return true if File.file?(path)
         File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(@@privkey) }
+      end
+
+      def cleanup!
+        [ spice_path, monitor_path ].each do |path|
+          begin
+            File.delete(path)
+          rescue Errno::ENOENT
+            # do nothing
+          end
+        end
       end
 
     end
