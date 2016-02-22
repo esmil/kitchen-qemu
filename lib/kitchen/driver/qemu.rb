@@ -75,6 +75,7 @@ module Kitchen
           begin
             mon = UNIXSocket.new(monitor)
           rescue Errno::ECONNREFUSED
+            info 'Stale monitor socket detected. Assuming old QEMU already quit.'
             cleanup!
           else
             mon.close
