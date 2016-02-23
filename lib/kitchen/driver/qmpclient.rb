@@ -46,7 +46,7 @@ module Kitchen
       def wait_for_eof(timeout = @timeout)
         while IO.select(@ioa, nil, nil, timeout)
           begin
-            @io.read_nonblock(4096)
+            loop { @io.read_nonblock(4096) }
           rescue EOFError
             return
           rescue Errno::ECONNRESET
