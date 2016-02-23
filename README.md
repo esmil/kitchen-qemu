@@ -50,12 +50,41 @@ the following check list:
 
 ### <a name="config-image"></a> image
 
-This setting is required to specify the path to
-the harddrive image to boot. It'll only be opened for reading.
+This setting is required to specify the path to a
+bootable disk image. It'll only be opened for reading.
 Any changes shall be written to temporary storage
-and lost once the instance is destroyed.
+and lost once the instance is destroyed. Eg.:
+```yml
+driver:
+  name: qemu
 
+platforms:
+  - name: myplatform
+    driver:
+      image: /path/to/mybootable.qcow2
+```
 See above for how to prepare images for use with kitchen-qemu.
+
+For advanced uses this setting can also be a list of maps
+describing several images to attach to the guest. Eg.:
+```yml
+driver:
+  name: qemu
+
+platforms:
+  - name: myplatform
+    driver:
+      image:
+        # opened read-only, guest changes discarded when shut down
+        - file: /path/to/bootable.qcow2
+        # opened read/write, guest changes persisted
+        - file: /path/to/writable.qcow2
+          snapshot: false
+        # opened read-only, guest cannot write to it
+        - file: /path/to/readonly.qcow2
+          snapshot: false
+          readonly: true
+```
 
 ### <a name="config-arch"></a> arch
 
@@ -146,6 +175,18 @@ Defaults to `virtio`.
 Set the hostname of the guest.
 
 Defaults to the instance name.
+
+### <a name="config-acpi-poweroff"></a> acpi\_poweroff
+
+Determines how guests are closed when running `kitchen destroy`.
+When `true` an ACPI poweroff event is sent to the guest which
+is expected to respond by closing down gracefully. This is
+like pressing a virtual power button on the virtual machine.
+When `false` QEMU is simply shut down immediately. This is faster
+but similar to forcefully pulling the power from the virtual machine.
+
+Defaults to `false` when all attached disk images are opened
+read-only and `true` otherwise.
 
 ### <a name="config-require-chef-omnibus"></a> require\_chef\_omnibus
 

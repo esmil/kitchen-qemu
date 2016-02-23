@@ -64,6 +64,26 @@ module Kitchen
         # kitchen-vagrant compatibility
         config[:hostname] = config[:vm_hostname] if config[:hostname].nil?
 
+        acpi_poweroff = false
+        if config[:image].kind_of?(String)
+          config[:image] = [{
+            :file     => config[:image],
+            :readonly => true,
+            :snapshot => true,
+          }]
+        else
+          raise UserError, "Invalid image entry for #{instance.to_str}" unless
+            config[:image].kind_of?(Array)
+          config[:image].each do |image|
+            raise UserError, "Invalid image entry for #{instance.to_str}" unless
+              image.kind_of?(Hash) && image[:file]
+            image[:snapshot] = true             if image[:snapshot].nil?
+            image[:readonly] = image[:snapshot] if image[:readonly].nil?
+            acpi_poweroff = true unless image[:readonly]
+          end
+        end
+        config[:acpi_poweroff] = acpi_poweroff if config[:acpi_poweroff].nil?
+
         config[:vga] = 'qxl' if config[:spice] && !config[:vga]
         self
       end
@@ -91,10 +111,11 @@ module Kitchen
         fqdn = config[:hostname] || instance.name
         hostname = fqdn.match(/^([^.]+)/)[0]
 
-        state[:hostname] = 'localhost'
-        state[:port]     = config[:port]
-        state[:username] = config[:username]
-        state[:password] = config[:password]
+        state[:hostname]      = 'localhost'
+        state[:port]          = config[:port]
+        state[:username]      = config[:username]
+        state[:password]      = config[:password]
+        state[:acpi_poweroff] = config[:acpi_poweroff]
 
         cmd = [
           config[:binary], '-daemonize',
@@ -105,10 +126,6 @@ module Kitchen
           '-m', config[:memory].to_s,
           '-net', "nic,model=#{config[:nic_model]}",
           '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{state[:port]}-:22",
-          '-device', 'virtio-scsi-pci,id=scsi',
-          '-device', 'scsi-hd,drive=root',
-          '-drive', "if=none,id=root,readonly,file=#{config[:image]}",
-          '-snapshot',
         ]
 
         kvm = config[:kvm]
@@ -133,6 +150,16 @@ module Kitchen
         cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
         cmd.push('-spice', config[:spice].to_s) if config[:spice]
         cmd.push('-vnc',   config[:vnc].to_s)   if config[:vnc]
+
+        cmd.push('-device', 'virtio-scsi-pci,id=scsi')
+        config[:image].each_with_index do |image, i|
+          drive = ['if=none', "id=drive#{i}"]
+          drive.push('readonly')    if image[:readonly]
+          drive.push('snapshot=on') if image[:snapshot]
+          drive.push("file=#{image[:file]}")
+          cmd.push('-device', "scsi-hd,drive=drive#{i}",
+                   '-drive', drive.join(','))
+        end
 
         info 'Spawning QEMU..'
         error = nil
@@ -174,9 +201,15 @@ module Kitchen
 
         begin
           mon = QMPClient.new(UNIXSocket.new(monitor), 2)
-          info 'Quitting QEMU..'
-          mon.execute('quit')
-          mon.wait_for_eof(5)
+          if state[:acpi_poweroff]
+            info 'Sending ACPI poweroff..'
+            mon.execute('system_powerdown')
+            mon.wait_for_eof(30)
+          else
+            info 'Quitting QEMU..'
+            mon.execute('quit')
+            mon.wait_for_eof(5)
+          end
           mon.close
         rescue Errno::ECONNREFUSED
           info 'Connection to monitor refused. Assuming QEMU already quit.'
