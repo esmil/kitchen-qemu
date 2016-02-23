@@ -41,7 +41,7 @@ module Kitchen
       default_config :memory,    '512'
       default_config :nic_model, 'virtio'
 
-      required_config :image do |attr, value, subject|
+      required_config :image do |_attr, value, _subject|
         raise UserError, 'Must specify image file' unless value
       end
 
@@ -57,7 +57,7 @@ module Kitchen
       def finalize_config!(instance)
         super
         if not config[:binary]
-          config[:binary] = @@archbinary[config[:arch]] or
+          config[:binary] = @@ARCHBINARY[config[:arch]] or
             raise UserError, "Unknown architecture '#{config[:arch]}'"
         end
         config[:vga] = 'qxl' if config[:spice] && !config[:vga]
@@ -152,7 +152,7 @@ module Kitchen
         conn.wait_until_ready
         conn.execute("sudo sh -c 'echo 127.0.0.1 #{names} >> /etc/hosts' 2>/dev/null")
         conn.execute('install -dm700 "$HOME/.ssh"')
-        conn.execute("echo '#{@@pubkey}' > \"$HOME/.ssh/authorized_keys\"")
+        conn.execute("echo '#{@@PUBKEY}' > \"$HOME/.ssh/authorized_keys\"")
         conn.close
         state[:ssh_key] = privkey_path
       end
@@ -185,7 +185,7 @@ module Kitchen
 
       private
 
-      @@privkey = %{-----BEGIN RSA PRIVATE KEY-----
+      @@PRIVKEY = %{-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAyG6ASL3bWS67rsA5LDvKnfdCBagK61B5LIr+NvdjK3oRKhCq
 qRs7aNSPOqMu2NbKot4/BtD0hWipF7CAsMqK+241coMUwxRTlqvoe/L7xZ24Ktaj
 rm1kk/xNUGP5vWyK8sYfYnDUuLSypRaZ/ZfWuKZgQLDdOw2FWqHFVLoJDsXgsa/y
@@ -214,9 +214,9 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
 -----END RSA PRIVATE KEY-----
 }.freeze
 
-      @@pubkey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIboBIvdtZLruuwDksO8qd90IFqArrUHksiv4292MrehEqEKqpGzto1I86oy7Y1sqi3j8G0PSFaKkXsICwyor7bjVygxTDFFOWq+h78vvFnbgq1qOubWST/E1QY/m9bIryxh9icNS4tLKlFpn9l9a4pmBAsN07DYVaocVUugkOxeCxr/KLUXdvmXj4Xfq837ultL1ggyaN2YqeDwn+GxM8RNm51rIRa4DL6Y1rPgztm3FL+A9MglzEjELbs8s6EDVewAG6do1HwS3LqCGxlfZgRieelzIHkyaqLRU4mzqbkhmfaR/U/fHQppRDYWb3CoCSBilJxxYfjLK1VDyXOWkH kitchen-qemu'.freeze
+      @@PUBKEY = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIboBIvdtZLruuwDksO8qd90IFqArrUHksiv4292MrehEqEKqpGzto1I86oy7Y1sqi3j8G0PSFaKkXsICwyor7bjVygxTDFFOWq+h78vvFnbgq1qOubWST/E1QY/m9bIryxh9icNS4tLKlFpn9l9a4pmBAsN07DYVaocVUugkOxeCxr/KLUXdvmXj4Xfq837ultL1ggyaN2YqeDwn+GxM8RNm51rIRa4DL6Y1rPgztm3FL+A9MglzEjELbs8s6EDVewAG6do1HwS3LqCGxlfZgRieelzIHkyaqLRU4mzqbkhmfaR/U/fHQppRDYWb3CoCSBilJxxYfjLK1VDyXOWkH kitchen-qemu'.freeze
 
-      @@archbinary = {
+      @@ARCHBINARY = {
         'i386'   => 'qemu-system-i386',
         'amd64'  => 'qemu-system-x86_64',
         'x86'    => 'qemu-system-i386',
@@ -236,7 +236,7 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
       def create_privkey
         path = privkey_path
         return true if File.file?(path)
-        File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(@@privkey) }
+        File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(@@PRIVKEY) }
       end
 
       def cleanup!
