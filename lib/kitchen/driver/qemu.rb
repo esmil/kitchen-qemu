@@ -150,7 +150,7 @@ module Kitchen
         info 'Waiting for SSH..'
         conn = instance.transport.connection(state)
         conn.wait_until_ready
-        conn.execute("sudo sh -c 'echo 127.0.0.1 #{names} >> /etc/hosts' 2>/dev/null")
+        conn.execute("sudo sh -c 'echo 127.0.0.1 #{names} >> /etc/hosts; hostnamectl set-hostname #{hostname} || hostname #{hostname} || true' 2>/dev/null")
         conn.execute('install -dm700 "$HOME/.ssh"')
         conn.execute("echo '#{@@PUBKEY}' > \"$HOME/.ssh/authorized_keys\"")
         conn.close
