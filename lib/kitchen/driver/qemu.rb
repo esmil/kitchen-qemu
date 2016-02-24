@@ -69,7 +69,7 @@ module Kitchen
       # @param state [Hash] mutable instance and driver state
       # @raise [ActionFailed] if the action could not be completed
       def create(state)
-        monitor = monitor_path
+        monitor = monitor_qmp_path
         if File.exist?(monitor)
           begin
             mon = UNIXSocket.new(monitor)
@@ -95,8 +95,10 @@ module Kitchen
         cmd = [
           config[:binary], '-daemonize',
           '-display', config[:display].to_s,
-          '-chardev', "socket,id=monitor,path=#{monitor},server,nowait",
-          '-mon', 'chardev=monitor,mode=control,default',
+          '-chardev', "socket,id=mon-qmp,path=#{monitor},server,nowait",
+          '-mon', 'chardev=mon-qmp,mode=control,default',
+          '-chardev', "socket,id=mon-rdl,path=#{monitor_readline_path},server,nowait",
+          '-mon', 'chardev=mon-rdl,mode=readline',
           '-m', config[:memory].to_s,
           '-net', "nic,model=#{config[:nic_model]}",
           '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{state[:port]}-:22",
@@ -162,7 +164,7 @@ module Kitchen
       # @param state [Hash] mutable instance state
       # @raise [ActionFailed] if the action could not be completed
       def destroy(state)
-        monitor = monitor_path
+        monitor = monitor_qmp_path
         return unless File.exist?(monitor)
 
         instance.transport.connection(state).close
@@ -229,7 +231,11 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
         File.join(config[:kitchen_root], '.kitchen', 'kitchen-qemu.key')
       end
 
-      def monitor_path
+      def monitor_qmp_path
+        File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.qmp")
+      end
+
+      def monitor_readline_path
         File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.mon")
       end
 
@@ -241,7 +247,12 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
 
       def cleanup!
         begin
-          File.delete(monitor_path)
+          File.delete(monitor_qmp_path)
+        rescue Errno::ENOENT
+          # do nothing
+        end
+        begin
+          File.delete(monitor_readline_path)
         rescue Errno::ENOENT
           # do nothing
         end
