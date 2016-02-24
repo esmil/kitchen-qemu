@@ -52,7 +52,7 @@ module Kitchen
           rescue Errno::ECONNRESET
             return
           rescue IO::WaitReadable
-            # do notheng
+            # do nothing
           end
         end
         raise Timeout
@@ -84,7 +84,7 @@ module Kitchen
             begin
               @buf.push(@io.read_nonblock(4096))
             rescue IO::WaitReadable
-              # do notheng
+              # do nothing
             else
               break
             end
