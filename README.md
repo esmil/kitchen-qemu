@@ -135,7 +135,7 @@ Determines the type of virtual ethernet hardware the guest will see.
 
 Defaults to `virtio`.
 
-### <a name="config-vm-hostname"></a> vm\_hostname
+### <a name="config-hostname"></a> hostname
 
 Set the hostname of the guest.
 

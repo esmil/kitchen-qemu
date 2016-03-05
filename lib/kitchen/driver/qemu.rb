@@ -60,6 +60,10 @@ module Kitchen
           config[:binary] = @@ARCHBINARY[config[:arch]] or
             raise UserError, "Unknown architecture '#{config[:arch]}'"
         end
+
+        # kitchen-vagrant compatibility
+        config[:hostname] = config[:vm_hostname] if config[:hostname].nil?
+
         config[:vga] = 'qxl' if config[:spice] && !config[:vga]
         self
       end
@@ -84,7 +88,7 @@ module Kitchen
 
         create_privkey or raise ActionFailed, "Unable to create file '#{privkey_path}'"
 
-        fqdn = config[:vm_hostname] || instance.name
+        fqdn = config[:hostname] || instance.name
         hostname = fqdn.match(/^([^.]+)/)[0]
 
         state[:hostname] = 'localhost'
