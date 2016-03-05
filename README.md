@@ -176,6 +176,24 @@ Set the hostname of the guest.
 
 Defaults to the instance name.
 
+### <a name="config-hostshares"></a> hostshares
+
+Share parts of the host filesystem with the guest. Eg.
+```yml
+suites:
+  - name: mysuite
+    driver:
+      hostshares:
+        - path: my/shared/directory   # path to export
+          mountpoint: /mnt            # mountpoint inside the guest
+```
+If the path is not an absolute path it is taken relative to the
+directory of the `.kitchen.yml`. The shared path is automatically mounted
+at the specified mountpoint inside the guest.
+This is similar to Vagrant's synced_folders, but uses QEMU's builtin
+9pfs over virtio feature. On Linux this requires the 9p and 9pnet_virtio
+modules to be loadable or built in.
+
 ### <a name="config-acpi-poweroff"></a> acpi\_poweroff
 
 Determines how guests are closed when running `kitchen destroy`.

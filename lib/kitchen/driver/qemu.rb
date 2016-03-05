@@ -33,13 +33,14 @@ module Kitchen
       kitchen_driver_api_version 2
       plugin_version Kitchen::Driver::QEMU_VERSION
 
-      default_config :arch,      'x86_64'
-      default_config :username,  'kitchen'
-      default_config :password,  'kitchen'
-      default_config :port,      2222
-      default_config :display,   'none'
-      default_config :memory,    '512'
-      default_config :nic_model, 'virtio'
+      default_config :arch,       'x86_64'
+      default_config :username,   'kitchen'
+      default_config :password,   'kitchen'
+      default_config :port,       2222
+      default_config :display,    'none'
+      default_config :memory,     '512'
+      default_config :nic_model,  'virtio'
+      default_config :hostshares, []
 
       required_config :image do |_attr, value, _subject|
         raise UserError, 'Must specify image file' unless value
@@ -83,6 +84,28 @@ module Kitchen
           end
         end
         config[:acpi_poweroff] = acpi_poweroff if config[:acpi_poweroff].nil?
+
+        raise UserError, "Invalid share entry for #{instance.to_str}" unless
+          config[:hostshares].kind_of?(Array)
+        # kitchen-vagrant compatibility
+        if config[:hostshares].empty? && config[:synced_folders].kind_of?(Array)
+          config[:synced_folders].each do |folder|
+            if !folder[0].kind_of?(String) || !folder[1].kind_of?(String)
+              config[:hostshares].clear
+              break
+            end
+            config[:hostshares].push({ :path => folder[0], :mountpoint => folder[1] })
+          end
+        else
+          config[:hostshares].each do |share|
+            raise UserError, "Invalid share entry for #{instance.to_str}" unless
+              share.kind_of?(Hash) && share[:path]
+            raise UserError, "No mountpoint defined for share '#{share[:path]}' of #{instance.to_str}" unless
+              share[:mountpoint]
+            raise UserError, "Invalid mount options for share '#{share[:path]}' of #{instance.to_str}" unless
+              share[:mount_options].nil? || share[:mount_options].kind_of?(Array)
+          end
+        end
 
         config[:vga] = 'qxl' if config[:spice] && !config[:vga]
         self
@@ -161,6 +184,15 @@ module Kitchen
                    '-drive', drive.join(','))
         end
 
+        config[:hostshares].each_with_index do |share, i|
+          path = share[:path]
+          path = "#{config[:kitchen_root]}/#{path}" unless path[0] == '/'
+          raise ActionFailed, "Share path '#{path}' not a directory" unless
+            ::File.directory?(path)
+          cmd.push('-fsdev', "local,id=fsdev#{i},security_model=none,path=#{path}",
+                   '-device', "virtio-9p-pci,fsdev=fsdev#{i},mount_tag=path#{i}")
+        end
+
         info 'Spawning QEMU..'
         error = nil
         Open3.popen3({ 'QEMU_AUDIO_DRV' => 'none' }, *cmd) do |_, _, err, thr|
@@ -185,6 +217,11 @@ module Kitchen
         conn.execute("sudo sh -c 'echo 127.0.0.1 #{names} >> /etc/hosts; hostnamectl set-hostname #{hostname} || hostname #{hostname} || true' 2>/dev/null")
         conn.execute('install -dm700 "$HOME/.ssh"')
         conn.execute("echo '#{@@PUBKEY}' > \"$HOME/.ssh/authorized_keys\"")
+        config[:hostshares].each_with_index do |share, i|
+          options = share[:mount_options] ?
+            share[:mount_options].join(',') : 'cache=none,access=any,version=9p2000.L'
+          conn.execute("sudo sh -c 'install -dm755 \"#{share[:mountpoint]}\" && mount -t 9p -o trans=virtio,#{options} path#{i} \"#{share[:mountpoint]}\"'")
+        end
         conn.close
         state[:ssh_key] = privkey_path
       end
