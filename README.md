@@ -39,6 +39,12 @@ the following check list:
    [Omnibus package][chef_omnibus_dl] for even faster
    converge times.
 
+5. Bonus points for automatically starting a getty on the first
+   serial port. This way you can log into the guest without using
+   SSH like so:
+   ```$ socat -,cfmakeraw,escape=0xf .kitchen/<instance name>.mon```
+   Use Ctrl-o to exit socat.
+
 
 ## <a name="config"></a> Configuration
 
