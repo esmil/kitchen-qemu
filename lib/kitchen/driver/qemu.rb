@@ -15,6 +15,7 @@
 # along with kitchen-qemu.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'open3'
+require 'socket'
 
 require 'kitchen'
 require 'kitchen/driver/qemu_version'
@@ -36,7 +37,8 @@ module Kitchen
       default_config :arch,       'x86_64'
       default_config :username,   'kitchen'
       default_config :password,   'kitchen'
-      default_config :port,       2222
+      default_config :port_min,   1025
+      default_config :port_max,   65535
       default_config :display,    'none'
       default_config :memory,     '512'
       default_config :nic_model,  'virtio'
@@ -134,12 +136,6 @@ module Kitchen
         fqdn = config[:hostname] || instance.name
         hostname = fqdn.match(/^([^.]+)/)[0]
 
-        state[:hostname]      = 'localhost'
-        state[:port]          = config[:port]
-        state[:username]      = config[:username]
-        state[:password]      = config[:password]
-        state[:acpi_poweroff] = config[:acpi_poweroff]
-
         cmd = [
           config[:binary], '-daemonize',
           '-display', config[:display].to_s,
@@ -147,8 +143,6 @@ module Kitchen
           '-mon', 'chardev=mon-qmp,mode=control,default',
           '-serial', "mon:unix:path=#{serial_path},server,nowait",
           '-m', config[:memory].to_s,
-          '-net', "nic,model=#{config[:nic_model]}",
-          '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{state[:port]}-:22",
         ]
 
         kvm = config[:kvm]
@@ -193,6 +187,13 @@ module Kitchen
                    '-device', "virtio-9p-pci,fsdev=fsdev#{i},mount_tag=path#{i}")
         end
 
+        port = config[:port]
+        port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
+        cmd.push(
+          '-net', "nic,model=#{config[:nic_model]}",
+          '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
+        )
+
         info 'Spawning QEMU..'
         error = nil
         Open3.popen3({ 'QEMU_AUDIO_DRV' => 'none' }, *cmd) do |_, _, err, thr|
@@ -204,6 +205,12 @@ module Kitchen
           cleanup!
           raise ActionFailed, error
         end
+
+        state[:hostname]      = '127.0.0.1'
+        state[:port]          = port
+        state[:username]      = config[:username]
+        state[:password]      = config[:password]
+        state[:acpi_poweroff] = config[:acpi_poweroff]
 
         if hostname == fqdn
           names = fqdn
@@ -316,6 +323,20 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
         path = privkey_path
         return true if File.file?(path)
         File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(@@PRIVKEY) }
+      end
+
+      def random_free_port(host, min, max)
+        loop do
+          port = rand(max - min) + min
+          begin
+            serv = TCPServer.new(host, port)
+          rescue Errno::EADDRINUSE
+            # do nothing
+          else
+            serv.close
+            return port
+          end
+        end
       end
 
       def cleanup!

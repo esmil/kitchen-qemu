@@ -120,27 +120,21 @@ Determines which port QEMU will listen on. Connections to
 localhost on this port are forwarded to port 22 on the guest
 which should accept incoming SSH connections there.
 
-Defaults to port 2222 for now. No randomisation or probing for free
-ports are done yet, so different platforms need different ports
-configured to run at the same time. Eg. like so:
-```yaml
-driver:
-  name: qemu
+Defaults to unset which means a random free port is used.
 
-platforms:
-  - name: squeeze
-    driver:
-      image: /path/to/squeeze.qcow2
-      port: 2201
-  - name: wheezy
-    driver:
-      image: /path/to/wheezy.qcow2
-      port: 2202
-  - name: jessie
-    driver:
-      image: /path/to/jessie.qcow2
-      port: 2203
-```
+### <a name="config-port-min"></a> port\_min
+
+Determines the lowest port number to pick when
+the port is not specified.
+
+Defaults to 1025.
+
+### <a name="config-port-max"></a> port\_min
+
+Determines the highest port number to pick when
+the port is not specified.
+
+Defaults to 65535.
 
 ### <a name="config-kvm"></a> kvm
 
