@@ -254,7 +254,7 @@ GPLv3 or later (see [LICENSE][license])
 
 
 [author]:           https://github.com/esmil
-[cookbook]:         https://github.com/esmil/kitchn-qemu-images
+[cookbook]:         https://github.com/esmil/kitchen-qemu-images
 [issues]:           https://github.com/esmil/kitchen-qemu/issues
 [license]:          https://github.com/esmil/kitchen-qemu/blob/master/LICENSE
 [repo]:             https://github.com/esmil/kitchen-qemu
