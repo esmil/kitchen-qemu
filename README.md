@@ -38,7 +38,7 @@ the following check list:
 2. Install sudo and make sure the `kitchen`-user has
    password-less sudo rights. Eg.
    ```
-   # echo 'kitchen ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kitchen`
+   # echo 'kitchen ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kitchen
    ```
 
 3. Install an SSH server and make sure it is started automatically
