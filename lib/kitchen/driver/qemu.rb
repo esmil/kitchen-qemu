@@ -118,6 +118,8 @@ module Kitchen
       # @param state [Hash] mutable instance and driver state
       # @raise [ActionFailed] if the action could not be completed
       def create(state)
+        Dir.chdir(config[:kitchen_root])
+
         monitor = monitor_path
         if File.exist?(monitor)
           begin
@@ -244,6 +246,8 @@ EOS
       # @param state [Hash] mutable instance state
       # @raise [ActionFailed] if the action could not be completed
       def destroy(state)
+        Dir.chdir(config[:kitchen_root])
+
         monitor = monitor_path
         return unless File.exist?(monitor)
 
@@ -318,11 +322,11 @@ tY4IM9IaSC2LuPFVc0Kx6TwObdeQScOokIxL3HfayfLKieTLC+w2
       end
 
       def monitor_path
-        File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.qmp")
+        File.join('.kitchen', "#{instance.name}.qmp")
       end
 
       def serial_path
-        File.join(config[:kitchen_root], '.kitchen', "#{instance.name}.mon")
+        File.join('.kitchen', "#{instance.name}.mon")
       end
 
       def create_privkey
