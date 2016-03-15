@@ -221,9 +221,15 @@ module Kitchen
         info 'Waiting for SSH..'
         conn = instance.transport.connection(state)
         conn.wait_until_ready
-        conn.execute("sudo sh -c 'echo 127.0.0.1 #{names} >> /etc/hosts; hostnamectl set-hostname #{hostname} || hostname #{hostname} || true' 2>/dev/null")
-        conn.execute('install -dm700 "$HOME/.ssh"')
-        conn.execute("echo '#{@@PUBKEY}' > \"$HOME/.ssh/authorized_keys\"")
+        conn.execute(<<-EOS)
+sudo sh -s 2>/dev/null <<END
+echo '127.0.0.1 #{names}' >> /etc/hosts
+hostnamectl --transient set-hostname #{hostname} || hostname #{hostname}
+END
+umask 0022
+install -dm700 "$HOME/.ssh"
+echo '#{@@PUBKEY}' > "$HOME/.ssh/authorized_keys"
+EOS
         config[:hostshares].each_with_index do |share, i|
           options = share[:mount_options] ?
             share[:mount_options].join(',') : 'cache=none,access=any,version=9p2000.L'
