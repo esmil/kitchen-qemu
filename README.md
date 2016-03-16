@@ -98,6 +98,33 @@ platforms:
           readonly: true
 ```
 
+### <a name="config-image-path"></a> image\_path
+
+Specifies the default path for images. That is unless the absolute path
+to the an image file is given this path is prepended.
+
+Defaults to the following:
+- if the `KITCHEN_QEMU_IMAGES` environment variable if set use that
+- if `XDG_CONFIG_HOME` is set use `$XDG_CONFIG_HOME/kitchen-qemu`
+- if `HOME` is set use `$HOME/.config/kitchen-qemu`
+- fall back to `/tmp/kitchen-qemu`.
+
+This means the following `.kitchen.yml` will usually look for
+`$HOME/.config/kitchen-qemu/jessie.qcow2` and `$HOME/.config/kitchen-qemu/trusty.qcow2`.
+
+```yml
+driver:
+  name: qemu
+
+platforms:
+  - name: jessie
+    driver:
+      image: jessie.qcow2
+  - name: trusty
+    driver:
+      image: trusty.qcow2
+```
+
 ### <a name="config-arch"></a> arch
 
 Determines the QEMU command to run:

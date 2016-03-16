@@ -44,6 +44,18 @@ module Kitchen
       default_config :nic_model,  'virtio'
       default_config :hostshares, []
 
+      default_config :image_path do |_|
+        if ENV.has_key?('KITCHEN_QEMU_IMAGES')
+          ENV['KITCHEN_QEMU_IMAGES']
+        elsif ENV.has_key?('XDG_CONFIG_HOME')
+          "#{ENV['XDG_CONFIG_HOME']}/kitchen-qemu"
+        elsif ENV.has_key?('HOME')
+          "#{ENV['HOME']}/.config/kitchen-qemu"
+        else
+          '/tmp/kitchen-qemu'
+        end
+      end
+
       required_config :image do |_attr, value, _subject|
         raise UserError, 'Must specify image file' unless value
       end
@@ -175,7 +187,11 @@ module Kitchen
           drive = ['if=none', "id=drive#{i}"]
           drive.push('readonly')    if image[:readonly]
           drive.push('snapshot=on') if image[:snapshot]
-          drive.push("file=#{image[:file]}")
+          if image[:file][0] == '/'
+            drive.push("file=#{image[:file]}")
+          else
+            drive.push("file=#{config[:image_path]}/#{image[:file]}")
+          end
           cmd.push('-device', "scsi-hd,drive=drive#{i}",
                    '-drive', drive.join(','))
         end
