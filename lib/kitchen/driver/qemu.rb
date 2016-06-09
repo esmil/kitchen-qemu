@@ -83,7 +83,7 @@ module Kitchen
         if config[:image].kind_of?(String)
           config[:image] = [{
             :file     => config[:image],
-            :readonly => true,
+            :readonly => false,
             :snapshot => true,
           }]
         else
@@ -92,9 +92,9 @@ module Kitchen
           config[:image].each do |image|
             raise UserError, "Invalid image entry for #{instance.to_str}" unless
               image.kind_of?(Hash) && image[:file]
-            image[:snapshot] = true             if image[:snapshot].nil?
-            image[:readonly] = image[:snapshot] if image[:readonly].nil?
-            acpi_poweroff = true unless image[:readonly]
+            image[:readonly] = false             if image[:readonly].nil?
+            image[:snapshot] = !image[:readonly] if image[:snapshot].nil?
+            acpi_poweroff = true unless (image[:snapshot] || image[:readonly])
           end
         end
         config[:acpi_poweroff] = acpi_poweroff if config[:acpi_poweroff].nil?

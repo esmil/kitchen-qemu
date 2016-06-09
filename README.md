@@ -94,7 +94,6 @@ platforms:
           snapshot: false
         # opened read-only, guest cannot write to it
         - file: /path/to/readonly.qcow2
-          snapshot: false
           readonly: true
 ```
 
@@ -236,8 +235,8 @@ like pressing a virtual power button on the virtual machine.
 When `false` QEMU is simply shut down immediately. This is faster
 but similar to forcefully pulling the power from the virtual machine.
 
-Defaults to `false` when all attached disk images are opened
-read-only and `true` otherwise.
+Defaults to `false` when all attached disk images are snapshotted or
+read-only. Otherwise `true`.
 
 ### <a name="config-require-chef-omnibus"></a> require\_chef\_omnibus
 
