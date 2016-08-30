@@ -254,6 +254,10 @@ EOS
           conn.execute("sudo sh -c 'install -dm755 \"#{share[:mountpoint]}\" && mount -t 9p -o trans=virtio,#{options} path#{i} \"#{share[:mountpoint]}\"'")
         end
         conn.close
+
+        # from now on we want to use the private key,
+        # so delete the :password field and set :ssh_key
+        state.delete(:password)
         state[:ssh_key] = privkey_path
       end
 
