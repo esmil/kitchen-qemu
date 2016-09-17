@@ -42,6 +42,8 @@ module Kitchen
       default_config :display,    'none'
       default_config :memory,     '512'
       default_config :nic_model,  'virtio'
+      default_config :cores,     '1'
+      default_config :cpus,     '1'
       default_config :hostshares, []
 
       default_config :image_path do |_|
@@ -194,6 +196,15 @@ module Kitchen
           end
           cmd.push('-device', "scsi-hd,drive=drive#{i}",
                    '-drive', drive.join(','))
+        end
+
+        cpus = config[:cpus].to_i
+        cores = config[:cores].to_i
+        if cores > 1 || cpus > 1
+          info 'SMP enabled.'
+          cmd.push('-smp')
+          cmd.push('cpus=' + config[:cpus].to_s)   if cpus > 1
+          cmd.push('cores=' + config[:cores].to_s) if cores > 1
         end
 
         config[:hostshares].each_with_index do |share, i|

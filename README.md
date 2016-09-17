@@ -190,6 +190,18 @@ debug why your image doesn't respond to SSH.
 
 Defaults to `none' which means no window is displayed.
 
+### <a name="config-cores"></a> cores
+
+Determines the number of cores to give the instance.
+
+Defaults to 1.
+
+### <a name="config-cpus"></a> cpus
+
+Determines the number of cpus to give the instance.
+
+Defaults to 1.
+
 ### <a name="config-memory"></a> memory
 
 Determines the number of megabytes of RAM to give the instance.
