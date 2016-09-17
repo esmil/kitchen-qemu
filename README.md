@@ -190,6 +190,32 @@ debug why your image doesn't respond to SSH.
 
 Defaults to `none' which means no window is displayed.
 
+### <a name="config-cpus"></a> cpus
+
+Sets the number of virtual CPUs to give the instance.
+Alternatively set one or more of the following 3 options
+for more control over the virtual CPU topology.
+
+Defaults to 1.
+
+### <a name="config-sockets"></a> sockets
+
+Sets the number of CPU sockets in each instance.
+
+Defaults to 1.
+
+### <a name="config-cores"></a> cores
+
+Sets the number of cores in each instance CPU.
+
+Defaults to 1.
+
+### <a name="config-threads"></a> threads
+
+Sets the number of threads in each instance CPU core.
+
+Defaults to 1.
+
 ### <a name="config-memory"></a> memory
 
 Determines the number of megabytes of RAM to give the instance.

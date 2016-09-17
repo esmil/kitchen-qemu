@@ -205,6 +205,16 @@ module Kitchen
                    '-drive', drive.join(','))
         end
 
+        smp = []
+        smp.push("cpus=#{config[:cpus]}")       if config.has_key?(:cpus)
+        smp.push("sockets=#{config[:sockets]}") if config.has_key?(:sockets)
+        smp.push("cores=#{config[:cores]}")     if config.has_key?(:cores)
+        smp.push("threads=#{config[:threads]}") if config.has_key?(:threads)
+        if smp.length > 0
+          info 'SMP enabled.'
+          cmd.push('-smp', smp.join(','))
+        end
+
         config[:hostshares].each_with_index do |share, i|
           path = share[:path]
           path = "#{config[:kitchen_root]}/#{path}" unless path[0] == '/'
