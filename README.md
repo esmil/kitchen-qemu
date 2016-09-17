@@ -129,6 +129,12 @@ Determines the number of megabytes of RAM to give the instance.
 
 Defaults to 512 (MiB).
 
+### <a name="config-smp"></a> cores
+
+Determines the number of cores to give the instance.
+
+Defaults to 1.
+
 ### <a name="config-nic-model"></a> nic\_model
 
 Determines the type of virtual ethernet hardware the guest will see.

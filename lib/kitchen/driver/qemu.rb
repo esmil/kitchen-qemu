@@ -40,6 +40,7 @@ module Kitchen
       default_config :display,   'none'
       default_config :memory,    '512'
       default_config :nic_model, 'virtio'
+      default_config :cores,     '1'
 
       required_config :image do |attr, value, subject|
         raise UserError, 'Must specify image file' unless value
@@ -98,6 +99,7 @@ module Kitchen
           '-chardev', "socket,id=monitor,path=#{monitor},server,nowait",
           '-mon', 'chardev=monitor,mode=control,default',
           '-m', config[:memory].to_s,
+          '-smp', config[:cores].to_s,
           '-net', "nic,model=#{config[:nic_model]}",
           '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{state[:port]}-:22",
           '-device', 'virtio-scsi-pci,id=scsi',
