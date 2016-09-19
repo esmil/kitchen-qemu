@@ -98,6 +98,9 @@ module Kitchen
             image[:snapshot] = 'off' if image[:snapshot].kind_of?(FalseClass)
             # defaults
             image[:snapshot]      = 'on'    if !image.has_key?(:snapshot) && image[:readonly] != 'on'
+            image[:discard]       = 'unmap' if !image.has_key?(:discard)  && image[:readonly] != 'on'
+            image[:detect_zeroes] = 'unmap' if !image.has_key?(:detect_zeroes) &&
+              image[:readonly] != 'on' && image[:snapshot] != 'on'
             acpi_poweroff = true if image[:snapshot] != 'on' && image[:readonly] != 'on'
           end
         end
@@ -191,6 +194,8 @@ module Kitchen
           drive = ['if=none', "id=drive#{i}"]
           drive.push("readonly=#{image[:readonly]}")           if image.has_key?(:readonly)
           drive.push("snapshot=#{image[:snapshot]}")           if image.has_key?(:snapshot)
+          drive.push("discard=#{image[:discard]}")             if image.has_key?(:discard)
+          drive.push("detect-zeroes=#{image[:detect_zeroes]}") if image.has_key?(:detect_zeroes)
           if image[:file][0] == '/'
             drive.push("file=#{image[:file]}")
           else
