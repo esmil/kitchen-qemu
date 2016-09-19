@@ -77,27 +77,31 @@ module Kitchen
         end
 
         # kitchen-vagrant compatibility
-        config[:hostname] = config[:vm_hostname] if config[:hostname].nil?
+        config[:hostname] = config[:vm_hostname] unless config.has_key?(:hostname)
 
         acpi_poweroff = false
         if config[:image].kind_of?(String)
           config[:image] = [{
             :file     => config[:image],
-            :readonly => false,
-            :snapshot => true,
+            :snapshot => 'on',
           }]
         else
           raise UserError, "Invalid image entry for #{instance.to_str}" unless
             config[:image].kind_of?(Array)
           config[:image].each do |image|
             raise UserError, "Invalid image entry for #{instance.to_str}" unless
-              image.kind_of?(Hash) && image[:file]
-            image[:readonly] = false             if image[:readonly].nil?
-            image[:snapshot] = !image[:readonly] if image[:snapshot].nil?
-            acpi_poweroff = true unless (image[:snapshot] || image[:readonly])
+              image.kind_of?(Hash) && image[:file].kind_of?(String)
+            # backwards compatibility
+            image[:readonly] = 'on'  if image[:readonly].kind_of?(TrueClass)
+            image[:readonly] = 'off' if image[:readonly].kind_of?(FalseClass)
+            image[:snapshot] = 'on'  if image[:snapshot].kind_of?(TrueClass)
+            image[:snapshot] = 'off' if image[:snapshot].kind_of?(FalseClass)
+            # defaults
+            image[:snapshot]      = 'on'    if !image.has_key?(:snapshot) && image[:readonly] != 'on'
+            acpi_poweroff = true if image[:snapshot] != 'on' && image[:readonly] != 'on'
           end
         end
-        config[:acpi_poweroff] = acpi_poweroff if config[:acpi_poweroff].nil?
+        config[:acpi_poweroff] = acpi_poweroff unless config.has_key?(:acpi_poweroff)
 
         raise UserError, "Invalid share entry for #{instance.to_str}" unless
           config[:hostshares].kind_of?(Array)
@@ -113,11 +117,11 @@ module Kitchen
         else
           config[:hostshares].each do |share|
             raise UserError, "Invalid share entry for #{instance.to_str}" unless
-              share.kind_of?(Hash) && share[:path]
+              share.kind_of?(Hash) && share[:path].kind_of?(String)
             raise UserError, "No mountpoint defined for share '#{share[:path]}' of #{instance.to_str}" unless
-              share[:mountpoint]
-            raise UserError, "Invalid mount options for share '#{share[:path]}' of #{instance.to_str}" unless
-              share[:mount_options].nil? || share[:mount_options].kind_of?(Array)
+              share[:mountpoint].kind_of?(String)
+            raise UserError, "Invalid mount options for share '#{share[:path]}' of #{instance.to_str}" if
+              share.has_key?(:mount_options) && !share[:mount_options].kind_of?(Array)
           end
         end
 
@@ -185,8 +189,8 @@ module Kitchen
         cmd.push('-device', 'virtio-scsi-pci,id=scsi')
         config[:image].each_with_index do |image, i|
           drive = ['if=none', "id=drive#{i}"]
-          drive.push('readonly')    if image[:readonly]
-          drive.push('snapshot=on') if image[:snapshot]
+          drive.push("readonly=#{image[:readonly]}")           if image.has_key?(:readonly)
+          drive.push("snapshot=#{image[:snapshot]}")           if image.has_key?(:snapshot)
           if image[:file][0] == '/'
             drive.push("file=#{image[:file]}")
           else

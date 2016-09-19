@@ -91,10 +91,10 @@ platforms:
         - file: /path/to/bootable.qcow2
         # opened read/write, guest changes persisted
         - file: /path/to/writable.qcow2
-          snapshot: false
+          snapshot: off
         # opened read-only, guest cannot write to it
         - file: /path/to/readonly.qcow2
-          readonly: true
+          readonly: on
 ```
 
 ### <a name="config-image-path"></a> image\_path
