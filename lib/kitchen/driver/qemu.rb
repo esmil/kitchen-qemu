@@ -41,7 +41,7 @@ module Kitchen
       default_config :port_max,   65535
       default_config :display,    'none'
       default_config :memory,     '512'
-      default_config :nic_model,  'virtio'
+      default_config :nic_model,  'virtio-net-pci'
       default_config :hostshares, []
 
       default_config :image_path do |_|
@@ -227,8 +227,8 @@ module Kitchen
         port = config[:port]
         port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
         cmd.push(
-          '-net', "nic,model=#{config[:nic_model]}",
-          '-net', "user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
+          '-netdev', "user,id=user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
+          '-device', "#{config[:nic_model]},netdev=user",
         )
 
         info 'Spawning QEMU..'
