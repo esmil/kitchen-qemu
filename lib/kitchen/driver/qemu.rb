@@ -43,6 +43,7 @@ module Kitchen
       default_config :memory,     '512'
       default_config :nic_model,  'virtio-net-pci'
       default_config :hostshares, []
+      default_config :networks,   []
 
       default_config :image_path do |_|
         if ENV.has_key?('KITCHEN_QEMU_IMAGES')
@@ -128,6 +129,21 @@ module Kitchen
           end
         end
 
+        raise UserError, "Invalid network entry for #{instance.to_str}" unless
+          config[:networks].kind_of?(Array)
+
+        # Add default network
+        if config[:networks].empty?
+          config[:networks].push({ :netdev =>"user,id=user,net=192.168.1.0/24,hostname=#{config[:hostname]}" , :device => "#{config[:nic_model]},netdev=user" })
+        else
+          config[:networks].each do |network|
+            raise UserError, "Invalid netdev entry for #{instance.to_str}" unless
+              network.kind_of?(Hash) && network[:netdev].kind_of?(String)
+            raise UserError, "Invalid device entry for #{instance.to_str}" unless
+              network.kind_of?(Hash) && network[:device].kind_of?(String)
+          end
+        end
+
         config[:vga] = 'qxl' if config[:spice] && !config[:vga]
         self
       end
@@ -187,10 +203,26 @@ module Kitchen
 
         port = config[:port]
         port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
-        cmd.push(
-          '-netdev', "user,id=user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
-          '-device', "#{config[:nic_model]},netdev=user",
-        )
+
+        config[:networks].each_with_index do |network, i|
+          # enumerate
+          netdev = network[:netdev].gsub(/id=[a-zA-Z0-9]+,?/, '').split(',').insert(1,"id=net#{i}").join(',')
+          device = network[:device].gsub(/netdev=[a-zA-Z0-9]+,?/, '').split(',').insert(1,"netdev=net#{i}").join(',')
+
+          # portforward to index 0
+          if i==0
+            netdev = netdev.gsub(/hostfwd=[a-zA-Z0-9:-]+,?/, '').split(',').insert(2,"hostfwd=tcp::#{port}-:22").join(',')
+            netdev = netdev.gsub(/hostname=[a-zA-Z0-9_-]+,?/, '').split(',').insert(3,"hostname=#{hostname}").join(',')
+          else
+            netdev = netdev.gsub(/hostfwd=[a-zA-Z0-9:-]+,?/, '')
+            netdev = netdev.gsub(/hostname=[a-zA-Z0-9_-]+,?/, '')
+          end
+
+          cmd.push(
+            '-netdev', netdev,
+            '-device', device,
+          )
+        end
 
         cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
         cmd.push('-spice', config[:spice].to_s) if config[:spice]
