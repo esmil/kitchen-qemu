@@ -185,6 +185,13 @@ module Kitchen
           info 'KVM disabled'
         end
 
+        port = config[:port]
+        port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
+        cmd.push(
+          '-netdev', "user,id=user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
+          '-device', "#{config[:nic_model]},netdev=user",
+        )
+
         cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
         cmd.push('-spice', config[:spice].to_s) if config[:spice]
         cmd.push('-vnc',   config[:vnc].to_s)   if config[:vnc]
@@ -223,13 +230,6 @@ module Kitchen
           cmd.push('-fsdev', "local,id=fsdev#{i},security_model=none,path=#{path}",
                    '-device', "virtio-9p-pci,fsdev=fsdev#{i},mount_tag=path#{i}")
         end
-
-        port = config[:port]
-        port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
-        cmd.push(
-          '-netdev', "user,id=user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
-          '-device', "#{config[:nic_model]},netdev=user",
-        )
 
         info 'Spawning QEMU..'
         error = nil
