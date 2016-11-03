@@ -226,7 +226,23 @@ Defaults to 512 (MiB).
 
 Determines the type of virtual ethernet hardware the guest will see.
 
-Defaults to `virtio`.
+Defaults to `virtio-net-pci`.
+
+### <a name="config-networks"></a> networks
+
+Override network config.
+
+```yml
+suites:
+  - name: mysuite
+    driver:
+      networks:
+        - netdev: user,net=192.168.1.0/24
+          device: virtio-net-pci
+        - netdev: user
+          device: virtio-net-pci
+```
+Add qemu network options directly. id and netdev are overriden due to enumeration.
 
 ### <a name="config-hostname"></a> hostname
 
