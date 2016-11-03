@@ -41,7 +41,6 @@ module Kitchen
       default_config :port_max,   65535
       default_config :display,    'none'
       default_config :memory,     '512'
-      default_config :nic_model,  'virtio-net-pci'
       default_config :hostshares, []
 
       default_config :image_path do |_|
@@ -78,6 +77,24 @@ module Kitchen
 
         # kitchen-vagrant compatibility
         config[:hostname] = config[:vm_hostname] unless config.has_key?(:hostname)
+
+        # add default network
+        if !config.has_key?(:networks)
+          config[:networks] = [{
+            :netdev => 'user,id=user,net=192.168.1.0/24,hostname=%h,hostfwd=tcp::%p-:22',
+            :device => 'virtio-net-pci,netdev=user',
+          }]
+        else
+          raise UserError, "Invalid network entry for #{instance.to_str}" unless
+            config[:networks].kind_of?(Array)
+
+          config[:networks].each_with_index do |network, i|
+            raise UserError, "Invalid network entry #{i+1} for #{instance.to_str}" unless
+              network.kind_of?(Hash) && network[:device].kind_of?(String)
+            raise UserError, "Invalid network entry #{i+1} for #{instance.to_str}" if
+              network.has_key?(:device) && !network[:device].kind_of?(String)
+          end
+        end
 
         acpi_poweroff = false
         if config[:image].kind_of?(String)
@@ -187,10 +204,15 @@ module Kitchen
 
         port = config[:port]
         port = random_free_port('127.0.0.1', config[:port_min], config[:port_max]) if port.nil?
-        cmd.push(
-          '-netdev', "user,id=user,net=192.168.1.0/24,hostname=#{hostname},hostfwd=tcp::#{port}-:22",
-          '-device', "#{config[:nic_model]},netdev=user",
-        )
+        config[:networks].each do |network|
+          cmd.push(
+            '-netdev',
+            network[:netdev]
+              .gsub(/hostfwd=[^,]*/) { |x| x.gsub('%p', port.to_s) }
+              .gsub(/hostname=%h/, "hostname=#{hostname}")
+          ) if network[:netdev]
+          cmd.push('-device', network[:device])
+        end
 
         cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
         cmd.push('-spice', config[:spice].to_s) if config[:spice]

@@ -222,11 +222,22 @@ Determines the number of megabytes of RAM to give the instance.
 
 Defaults to 512 (MiB).
 
-### <a name="config-nic-model"></a> nic\_model
+### <a name="config-networks"></a> networks
 
-Determines the type of virtual ethernet hardware the guest will see.
+Specify NICs and networks. If not specified it defaults to
 
-Defaults to `virtio`.
+```yml
+suites:
+  - name: mysuite
+    driver:
+      networks:
+        - netdev: user,id=user,net=192.168.1.0/24,hostname=%h,hostfwd=tcp::%p-:22
+          device: virtio-net-pci,netdev=user
+```
+If a netdev entry contains a `hostname=%h` setting the `%h` is replaced by the
+configured hostname of the guest. Similarly when setting `hostfwd=..` any `%p` is
+replaced by the possibly random port chosen for kitchen to connect to.
+See the [port](#config-port) option above.
 
 ### <a name="config-hostname"></a> hostname
 
