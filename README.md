@@ -190,6 +190,10 @@ debug why your image doesn't respond to SSH.
 
 Defaults to `none' which means no window is displayed.
 
+### <a name="config-bios"></a> bios
+
+Use bios implementation at the given path.
+
 ### <a name="config-cpus"></a> cpus
 
 Sets the number of virtual CPUs to give the instance.

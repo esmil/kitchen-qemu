@@ -214,6 +214,7 @@ module Kitchen
           cmd.push('-device', network[:device])
         end
 
+        cmd.push('-bios',  config[:bios].to_s)  if config[:bios]
         cmd.push('-vga',   config[:vga].to_s)   if config[:vga]
         cmd.push('-spice', config[:spice].to_s) if config[:spice]
         cmd.push('-vnc',   config[:vnc].to_s)   if config[:vnc]

@@ -17,6 +17,6 @@
 module Kitchen
   module Driver
     # Version string for the QEMU Kitchen driver
-    QEMU_VERSION = '0.2.6.dev'
+    QEMU_VERSION = '0.2.7.dev'
   end
 end
