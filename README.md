@@ -59,20 +59,25 @@ the following checklist:
 
 ### <a name="installation-berkshelf"></a> Berkshelf Workaround
 
-Berkshelf currently has a bug that makes it fail if it encounters
-a named unix socket when uploading cookbooks to the guest.
+Berkshelf has a bug
+([they wont fix](https://github.com/berkshelf/berkshelf/issues/1627))
+that makes it crash if it encounters a named unix socket
+when uploading cookbooks to the guest.
 This will happen when uploading the cookbook in the current
 directory since that includes the `.kitchen` directory where
 kitchen-qemu creates two unix sockets for each running instance.
 One is a "serial terminal" and one is used to shutdown the running
 instance gracefully.
 
-To work around this problem make Berkshelf ignore the `.kitchen`
+To work around this bug make Berkshelf ignore the `.kitchen`
 directory by adding it to a `chefignore` file. Eg.
 ```
 $ echo .kitchen >> chefignore
 ```
 
+Alternatively create a `Cheffile` and let kitchen use
+[Librarian-Chef](https://github.com/applicationsonline/librarian-chef)
+to resolve cookbook dependencies.
 
 ## <a name="config"></a> Configuration
 
