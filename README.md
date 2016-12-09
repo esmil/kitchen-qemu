@@ -49,7 +49,13 @@ the following checklist:
    [Omnibus package][chef_omnibus_dl] for even faster
    converge times.
 
-5. Bonus points for automatically starting a getty on the first
+5. Ensure that the image uses DHCP to configure its network.
+   The network must be operational for kitchen to function.
+   Pay special attention to MAC addresses being hard-coded in
+   scripts like 'ifcfg-eth0'. You may need to create 'ifcfg-eth1'
+   to deal with the udev system making another interface (e.g.: Centos 6).
+
+6. Bonus points for automatically starting a getty on the first
    serial port. This way you can log into the guest without using
    SSH like so:
    ```
