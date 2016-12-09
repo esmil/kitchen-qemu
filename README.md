@@ -41,15 +41,20 @@ the following checklist:
    # echo 'kitchen ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kitchen
    ```
 
-3. Install an SSH server and make sure it is started automatically
+3. By default each instance gets a single network interface.
+   Make sure the image uses DHCP to automatically configure an
+   IPv4 address on this interface.
+   Usually its `eth0` or `ens3`, but can be named something else.
+
+4. Install an SSH server and make sure it is started automatically
    at boot and listens on port 22.
 
-4. Install curl, wget or something similar for downloading
+5. Install curl, wget or something similar for downloading
    Chef from the guest or pre-install the Chef
    [Omnibus package][chef_omnibus_dl] for even faster
    converge times.
 
-5. Bonus points for automatically starting a getty on the first
+6. Bonus points for automatically starting a getty on the first
    serial port. This way you can log into the guest without using
    SSH like so:
    ```
