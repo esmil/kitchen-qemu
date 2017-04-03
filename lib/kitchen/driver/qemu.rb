@@ -42,6 +42,7 @@ module Kitchen
       default_config :display,    'none'
       default_config :memory,     '512'
       default_config :hostshares, []
+      default_config :args,       []
 
       default_config :image_path do |_|
         if ENV.has_key?('KITCHEN_QEMU_IMAGES')
@@ -252,6 +253,13 @@ module Kitchen
             ::File.directory?(path)
           cmd.push('-fsdev', "local,id=fsdev#{i},security_model=none,path=#{path}",
                    '-device', "virtio-9p-pci,fsdev=fsdev#{i},mount_tag=path#{i}")
+        end
+
+        config[:args].each do |arg|
+          arg.each do |name, value|
+            cmd.push("-#{name}")
+            cmd.push(value)
+          end
         end
 
         info 'Spawning QEMU..'
