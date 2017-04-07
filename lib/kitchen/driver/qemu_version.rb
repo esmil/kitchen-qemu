@@ -1,5 +1,5 @@
 # This file is part of kitchen-qemu.
-# Copyright 2016 Emil Renner Berthing <esmil@esmil.dk>
+# Copyright 2016,2017 Emil Renner Berthing <esmil@esmil.dk>
 #
 # kitchen-qemu is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,6 @@
 module Kitchen
   module Driver
     # Version string for the QEMU Kitchen driver
-    QEMU_VERSION = '0.2.7.dev'
+    QEMU_VERSION = '0.2.8.dev'
   end
 end
