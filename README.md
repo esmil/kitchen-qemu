@@ -275,6 +275,10 @@ Set the hostname of the guest.
 
 Defaults to the instance name.
 
+### <a name="config-bios"></a> bios
+
+Configure the path to OVFM "bios"
+
 ### <a name="config-hostshares"></a> hostshares
 
 Share parts of the host filesystem with the guest. Eg.
