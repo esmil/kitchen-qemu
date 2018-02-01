@@ -227,7 +227,7 @@ module Kitchen
           drive.push("snapshot=#{image[:snapshot]}")           if image.has_key?(:snapshot)
           drive.push("discard=#{image[:discard]}")             if image.has_key?(:discard)
           drive.push("detect-zeroes=#{image[:detect_zeroes]}") if image.has_key?(:detect_zeroes)
-          if image[:file][0] == '/'
+          if ['/', '.'].include? image[:file][0]
             drive.push("file=#{image[:file]}")
           else
             drive.push("file=#{config[:image_path]}/#{image[:file]}")
