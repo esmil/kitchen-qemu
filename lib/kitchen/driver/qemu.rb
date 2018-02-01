@@ -292,7 +292,7 @@ module Kitchen
         conn.execute(<<-EOS)
 sudo sh -s 2>/dev/null <<END
 echo '127.0.0.1 #{names}' >> /etc/hosts
-hostnamectl --transient set-hostname #{hostname} || hostname #{hostname}
+hostnamectl set-hostname #{hostname} || hostname #{hostname}
 END
 umask 0022
 install -dm700 "$HOME/.ssh"
