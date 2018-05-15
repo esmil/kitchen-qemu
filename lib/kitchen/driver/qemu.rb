@@ -41,6 +41,7 @@ module Kitchen
       default_config :port_max,   65535
       default_config :display,    'none'
       default_config :memory,     '512'
+      default_config :hvf,        false
       default_config :hostshares, []
       default_config :args,       []
 
@@ -199,6 +200,9 @@ module Kitchen
         if kvm
           info 'KVM enabled.'
           cmd.push('-enable-kvm', '-cpu', 'host')
+        elsif config[:hvf]
+          cmd.push('-cpu', 'host', '-M', 'accel=hvf')
+          info 'hypervisor.framework enabled.'
         else
           info 'KVM disabled'
         end
