@@ -179,7 +179,7 @@ module Kitchen
           config[:binary], '-daemonize',
           '-display', config[:display].to_s,
           '-chardev', "socket,id=mon-qmp,path=#{monitor},server,nowait",
-          '-mon', 'chardev=mon-qmp,mode=control,default',
+          '-mon', 'chardev=mon-qmp,mode=control',
           '-serial', "mon:unix:path=#{serial_path},server,nowait",
           '-m', config[:memory].to_s,
         ]
