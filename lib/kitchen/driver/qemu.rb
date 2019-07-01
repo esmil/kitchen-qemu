@@ -34,15 +34,18 @@ module Kitchen
       kitchen_driver_api_version 2
       plugin_version Kitchen::Driver::QEMU_VERSION
 
-      default_config :arch,       'x86_64'
-      default_config :username,   'kitchen'
-      default_config :password,   'kitchen'
-      default_config :port_min,   1025
-      default_config :port_max,   65535
-      default_config :display,    'none'
-      default_config :memory,     '512'
-      default_config :hostshares, []
-      default_config :args,       []
+      default_config :arch,        'x86_64'
+      default_config :username,    'kitchen'
+      default_config :password,    'kitchen'
+      default_config :port_min,    1025
+      default_config :port_max,    65535
+      default_config :display,     'none'
+      default_config :memory,      '512'
+      default_config :hostshares,  []
+      default_config :args,        []
+      default_config :vendor_data, nil
+      default_config :meta_data,   nil
+      default_config :user_data,   nil
 
       default_config :image_path do |_|
         if ENV.has_key?('KITCHEN_QEMU_IMAGES')
@@ -234,6 +237,40 @@ module Kitchen
           end
           cmd.push('-device', "scsi-hd,drive=drive#{i}",
                    '-drive', drive.join(','))
+        end
+
+        if config[:vendor_data] or config[:meta_data] or config[:user_data]
+          vendor_data = File.join(config[:kitchen_root], '.kitchen', 'vendor-data')
+          meta_data   = File.join(config[:kitchen_root], '.kitchen', 'meta-data')
+          user_data   = File.join(config[:kitchen_root], '.kitchen', 'user-data')
+          cidata      = File.join(config[:kitchen_root], '.kitchen', 'cidata.iso')
+
+          File.open(vendor_data, File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(config.fetch(:vendor_data, '')) }
+          File.open(meta_data,   File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(config.fetch(:meta_data, '')) }
+          File.open(user_data,   File::CREAT|File::TRUNC|File::RDWR, 0600) { |f| f.write(config.fetch(:user_data, '')) }
+
+          geniso = [
+            'genisoimage',
+            '-output', cidata,
+            '-volid', 'cidata',
+            '-joliet', '-rock',
+            vendor_data, user_data, meta_data
+          ]
+
+          puts cmd.join(" ")
+          Open3.popen3({}, *geniso) do |_, _, err, thr|
+            if not thr.value.success?
+              error = err.read.strip
+              cleanup!
+              raise ActionFailed, error
+            end
+          end
+
+          i = config[:image].length
+          drive = ['if=none', "id=drive#{i}"]
+          drive.push("readonly=on")
+          drive.push("file=#{cidata}")
+          cmd.push('-device', "scsi-hd,drive=drive#{i}", '-drive', drive.join(','))
         end
 
         smp = []

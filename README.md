@@ -341,6 +341,41 @@ kitchen-qemu. Using ``args`` to add more devices needed for a test should be
 fine though. The arguments are appended to the end of the QEMU command line,
 behind all other options.
 
+
+### cloud-init / SSH keys
+
+```
+```yaml
+---
+driver:
+  name: qemu
+
+platforms:
+  - name: test
+    driver:
+      name: qemu
+      username: test123
+      password: test123
+      memory: 2048
+      image:
+        - file: ./vda.img
+        - file: ./seed.iso
+      display: gtk
+
+      cloud_init:
+        meta_data: |
+          instance-id: iid-local01
+          local-hostname: test-kitchen-plop
+
+        user_data: |
+          #cloud-config
+
+          write_files:
+            - path: /tmp/plop
+              content: |
+                foobar
+```
+
 ## <a name="development"></a> Development
 
 * Source hosted at [GitHub][repo]
