@@ -36,5 +36,5 @@ Gem::Specification.new do |gem|
   gem.executables   = []
   gem.require_paths = [ 'lib' ]
 
-  gem.add_dependency 'test-kitchen', '~> 1.4'
+  gem.add_dependency 'test-kitchen', '>= 1.4'
 end
