@@ -291,7 +291,7 @@ module Kitchen
         conn.wait_until_ready
         conn.execute(<<-EOS)
 sudo sh -s 2>/dev/null <<END
-echo '127.0.0.1 #{names}' >> /etc/hosts
+sed -i '/127.0.1.1/c\\127.0.1.1 #{names}' /etc/hosts
 hostnamectl set-hostname #{hostname} || hostname #{hostname}
 END
 umask 0022
