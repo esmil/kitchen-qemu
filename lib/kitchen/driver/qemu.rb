@@ -178,9 +178,9 @@ module Kitchen
         cmd = [
           config[:binary], '-daemonize',
           '-display', config[:display].to_s,
-          '-chardev', "socket,id=mon-qmp,path=#{monitor},server,nowait",
+          '-chardev', "socket,id=mon-qmp,path=#{monitor},server=on,wait=off",
           '-mon', 'chardev=mon-qmp,mode=control',
-          '-serial', "mon:unix:path=#{serial_path},server,nowait",
+          '-serial', "mon:unix:path=#{serial_path},server=on,wait=off",
           '-m', config[:memory].to_s,
         ]
 
