@@ -37,6 +37,7 @@ module Kitchen
       default_config :arch,       'x86_64'
       default_config :username,   'kitchen'
       default_config :password,   'kitchen'
+      default_config :ssh_key,    'none'
       default_config :port_min,   1025
       default_config :port_max,   65535
       default_config :display,    'none'
@@ -277,7 +278,13 @@ module Kitchen
         state[:hostname]      = '127.0.0.1'
         state[:port]          = port
         state[:username]      = config[:username]
-        state[:password]      = config[:password]
+
+        if config[:ssh_key] != 'none'
+          state[:ssh_key]       = config[:ssh_key]
+        else
+          state[:password]      = config[:password]
+        end
+
         state[:acpi_poweroff] = config[:acpi_poweroff]
 
         if hostname == fqdn
